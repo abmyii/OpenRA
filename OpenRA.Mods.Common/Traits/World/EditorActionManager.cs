@@ -114,6 +114,11 @@ namespace OpenRA.Mods.Common.Traits
 			while (undoStack.Peek().Id != id)
 				Redo();
 		}
+
+		public bool HasUnsavedItems()
+		{
+			return HasRedos() || !(undoStack.Peek().Action is OpenMapAction || undoStack.Peek().Action is SaveMapAction);
+		}
 	}
 
 	public enum EditorActionStatus
@@ -137,6 +142,30 @@ namespace OpenRA.Mods.Common.Traits
 		public OpenMapAction()
 		{
 			Text = "Opened";
+		}
+
+		public void Execute()
+		{
+		}
+
+		public void Do()
+		{
+		}
+
+		public void Undo()
+		{
+		}
+
+		public string Text { get; private set; }
+
+		public EditorActionStatus Status { get; set; }
+	}
+
+	class SaveMapAction : IEditorAction
+	{
+		public SaveMapAction()
+		{
+			Text = "Saved at " + DateTime.Now.ToLongTimeString();
 		}
 
 		public void Execute()
