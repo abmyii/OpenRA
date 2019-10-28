@@ -109,6 +109,16 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				copyFilterDropdown.AttachPanel(CreateCategoriesPanel());
 			};
 
+			var actionManager = world.WorldActor.Trait<EditorActionManager>();			
+			var fileLabel = widget.GetOrNull<LabelWidget>("FILE_LABEL");
+			if (fileLabel != null)
+			{
+				fileLabel.GetText = () =>
+				{
+					return "Path /home/.../.openra/...{0}".F(actionManager.HasUnsavedItems() ? "*" : "");
+				};
+			}
+
 			var coordinateLabel = widget.GetOrNull<LabelWidget>("COORDINATE_LABEL");
 			if (coordinateLabel != null)
 			{
@@ -129,7 +139,6 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					cashLabel.GetText = () => "$ {0}".F(reslayer.NetWorth);
 			}
 
-			var actionManager = world.WorldActor.Trait<EditorActionManager>();
 			var undoButton = widget.GetOrNull<ButtonWidget>("UNDO_BUTTON");
 			if (undoButton != null)
 			{

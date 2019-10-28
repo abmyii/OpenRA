@@ -558,6 +558,12 @@ Container@EDITOR_WORLD_ROOT:
 			TooltipContainer: TOOLTIP_CONTAINER
 			Font: Bold
 			Key: escape
+		Label@FILE_LABEL:
+			X: 0
+			Y: 50
+			Align: Left
+			Font: Bold
+			TextColor: FF0000
 		Button@COPYPASTE_BUTTON:
 			X: 170
 			Width: 90
