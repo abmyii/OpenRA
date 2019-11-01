@@ -175,8 +175,8 @@ namespace OpenRA.Server
 				while (true)
 				{
 					var checkRead = new List<Socket>();
-					if (State == ServerState.WaitingPlayers)
-						checkRead.Add(listener.Server);
+					//if (State == ServerState.WaitingPlayers)
+					checkRead.Add(listener.Server);
 
 					checkRead.AddRange(Conns.Select(c => c.Socket));
 					checkRead.AddRange(PreConns.Select(c => c.Socket));
@@ -312,18 +312,10 @@ namespace OpenRA.Server
 
 		void ValidateClient(Connection newConn, string data)
 		{
+			Console.WriteLine(newConn);
+			Console.WriteLine(data);
 			try
 			{
-				if (State == ServerState.GameStarted)
-				{
-					Log.Write("server", "Rejected connection from {0}; game is already started.",
-						newConn.Socket.RemoteEndPoint);
-
-					SendOrderTo(newConn, "ServerError", "The game has already started");
-					DropClient(newConn);
-					return;
-				}
-
 				var handshake = HandshakeResponse.Deserialize(data);
 
 				if (!string.IsNullOrEmpty(Settings.Password) && handshake.Password != Settings.Password)
@@ -385,6 +377,19 @@ namespace OpenRA.Server
 					SendOrderTo(newConn, "ServerError", "You have been {0} from the server".F(Settings.Ban.Contains(client.IpAddress) ? "banned" : "temporarily banned"));
 					DropClient(newConn);
 					return;
+				}
+
+				if (State == ServerState.GameStarted)
+				{
+					//Log.Write("server", "Rejected connection from {0}; game is already started.",
+					//	newConn.Socket.RemoteEndPoint);
+
+					//SendOrderTo(newConn, "ServerError", "The game has already started");
+					//DropClient(newConn);
+					Console.WriteLine(PreConns);
+					Console.WriteLine(Conns);
+					Console.WriteLine(LobbyInfo.Clients);
+					//return;
 				}
 
 				Action completeConnection = () =>
@@ -546,6 +551,7 @@ namespace OpenRA.Server
 			}
 			catch (Exception ex)
 			{
+				Console.WriteLine(ex.ToString());
 				Log.Write("server", "Dropping connection {0} because an error occurred:", newConn.Socket.RemoteEndPoint);
 				Log.Write("server", ex.ToString());
 				DropClient(newConn);
@@ -760,6 +766,7 @@ namespace OpenRA.Server
 						// Start by removing all bots and assigning all players as spectators
 						foreach (var c in LobbyInfo.Clients)
 						{
+							Console.WriteLine(c);
 							if (c.Bot != null)
 							{
 								LobbyInfo.Clients.Remove(c);
@@ -931,7 +938,7 @@ namespace OpenRA.Server
 
 		public void StartGame()
 		{
-			listener.Stop();
+			//listener.Stop();
 
 			Console.WriteLine("[{0}] Game started", DateTime.Now.ToString(Settings.TimestampFormat));
 
@@ -952,7 +959,7 @@ namespace OpenRA.Server
 
 			// Enable game saves for singleplayer missions only
 			// TODO: Enable for multiplayer (non-dedicated servers only) once the lobby UI has been created
-			LobbyInfo.GlobalSettings.GameSavesEnabled = !Dedicated && LobbyInfo.NonBotClients.Count() == 1;
+			LobbyInfo.GlobalSettings.GameSavesEnabled = true; //!Dedicated && LobbyInfo.NonBotClients.Count() == 1;
 
 			SyncLobbyInfo();
 			State = ServerState.GameStarted;

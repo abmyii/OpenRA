@@ -70,16 +70,16 @@ namespace OpenRA.Server
 				while (true)
 				{
 					Thread.Sleep(1000);
-					if (server.State == ServerState.GameStarted && server.Conns.Count < 1)
+					/**if (server.State == ServerState.GameStarted && server.Conns.Count < 1)
 					{
 						Console.WriteLine("[{0}] No one is playing, shutting down...", DateTime.Now.ToString(settings.TimestampFormat));
 						server.Shutdown();
 						break;
-					}
+					}**/
 				}
 
-				modData.Dispose();
-				Console.WriteLine("[{0}] Starting a new server instance...", DateTime.Now.ToString(settings.TimestampFormat));
+				//modData.Dispose();
+				//Console.WriteLine("[{0}] Starting a new server instance...", DateTime.Now.ToString(settings.TimestampFormat));
 			}
 		}
 	}
