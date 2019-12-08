@@ -19,6 +19,7 @@ using OpenRA.Graphics;
 using OpenRA.Primitives;
 using OpenRA.Scripting;
 using OpenRA.Traits;
+using Newtonsoft.Json;
 
 namespace OpenRA
 {
@@ -34,10 +35,12 @@ namespace OpenRA
 
 		public readonly ActorInfo Info;
 
+		//[JsonIgnore]
 		public readonly World World;
 
 		public readonly uint ActorID;
 
+		//[JsonIgnore]
 		public Player Owner { get; internal set; }
 
 		public bool IsInWorld { get; internal set; }
@@ -50,6 +53,7 @@ namespace OpenRA
 		public Actor ReplacedByActor;
 
 		public IEffectiveOwner EffectiveOwner { get; private set; }
+		//[JsonIgnore]
 		public IOccupySpace OccupiesSpace { get; private set; }
 		public ITargetable[] Targetables { get; private set; }
 
