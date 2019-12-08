@@ -14,12 +14,69 @@ using System.Linq;
 using OpenRA.Graphics;
 using OpenRA.Traits;
 
+using Newtonsoft.Json;
+using System;
+using Newtonsoft.Json.Linq;
+using OpenRA;
+using Newtonsoft.Json.Serialization;
+
+public class VertexBufferConverter : JsonConverter
+{
+	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	{
+		Console.WriteLine(value);
+		writer.WriteValue("null");
+	}
+
+	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	{
+		return null;
+	}
+
+	public override bool CanConvert(Type objectType)
+	{
+		Console.WriteLine(objectType);
+		return objectType == typeof(OpenRA.Actor);
+	}
+}
+
+
 namespace OpenRA.Orders
 {
 	public class UnitOrderGenerator : IOrderGenerator
 	{
 		static Target TargetForInput(World world, CPos cell, int2 worldPixel, MouseInput mi)
 		{
+			ITraceWriter traceWriter = new MemoryTraceWriter();
+			var errors = new List<string>();
+			var settings = new JsonSerializerSettings
+			{
+				Formatting = Formatting.Indented,
+				ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+				TypeNameHandling = TypeNameHandling.All,
+				DefaultValueHandling = DefaultValueHandling.Include,
+				PreserveReferencesHandling = PreserveReferencesHandling.All,
+				NullValueHandling = NullValueHandling.Ignore,
+				TraceWriter = traceWriter,
+				Error = (sender, args) =>
+				{
+					if (object.Equals(args.ErrorContext.Member, "VertexBuffer"))
+					{
+						args.ErrorContext.Handled = true;
+					}
+
+					errors.Add(args.ErrorContext.Error.Message);
+					args.ErrorContext.Handled = true;
+				}
+			};
+			//settings.Converters.Add(new VertexBufferConverter());
+			string json = JsonConvert.SerializeObject(world, settings);
+			//Console.WriteLine(traceWriter);
+			//Console.WriteLine(json.Length);
+			World w = JsonConvert.DeserializeObject<World>(json, settings);
+			//Console.WriteLine(traceWriter);
+			Console.WriteLine(JsonConvert.SerializeObject(errors, settings));
+
 			var actor = world.ScreenMap.ActorsAtMouse(mi)
 				.Where(a => !a.Actor.IsDead && a.Actor.Info.HasTraitInfo<ITargetableInfo>() && !world.FogObscures(a.Actor))
 				.WithHighestSelectionPriority(worldPixel, mi.Modifiers);
@@ -130,6 +187,54 @@ namespace OpenRA.Orders
 		/// </summary>
 		static UnitOrderResult OrderForUnit(Actor self, Target target, List<Actor> actorsAt, CPos xy, MouseInput mi)
 		{
+			var errors = new List<string>();
+			var settings = new JsonSerializerSettings
+			{
+				Formatting = Formatting.Indented,
+				ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+				TypeNameHandling = TypeNameHandling.All,
+				DefaultValueHandling = DefaultValueHandling.Include,
+				PreserveReferencesHandling = PreserveReferencesHandling.All,
+				Error = (sender, args) =>
+				{
+					/**if (object.Equals(args.ErrorContext.Member, "VertexBuffer"))
+					{
+						args.ErrorContext.Handled = true;
+					}**/
+
+					errors.Add(args.ErrorContext.Error.Message);
+					args.ErrorContext.Handled = true;
+				}
+			};
+			//string json = JsonConvert.SerializeObject(mi, settings);
+			//Console.WriteLine(json);
+			//Console.WriteLine(JsonConvert.SerializeObject(errors, settings));
+			//Console.WriteLine(JsonConvert.SerializeObject(mi, settings));
+			//Console.WriteLine(JsonConvert.SerializeObject(self, settings));
+			//self = JsonConvert.DeserializeObject<OpenRA.Actor>(json, settings);
+			//Console.WriteLine(new JsonSerializer().Deserialize(json, typeof(OpenRA.Actor));
+			//dynamic values = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(json);
+			//Dictionary<string, object> values2 = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+			/**foreach (KeyValuePair<string, dynamic> kvp in values)
+			{
+				Console.WriteLine(kvp.Key);
+				Console.WriteLine(kvp.Value);
+			}**/
+			//Console.WriteLine("==================");
+			/**foreach (KeyValuePair<string, object> kvp in values2)
+			{
+				Console.WriteLine(kvp.Key);
+				Console.WriteLine(kvp.Value);
+			}**/
+			//self = new OpenRA.Actor(self.World, self.ToString(), values2);
+
+			/**Console.WriteLine("old");
+			Console.WriteLine(json);
+			mi = JsonConvert.DeserializeObject<MouseInput>(json, settings);
+			Console.WriteLine("new");
+			Console.WriteLine(JsonConvert.SerializeObject(mi, settings));
+			Console.WriteLine("======");**/
+
 			if (mi.Button != Game.Settings.Game.MouseButtonPreference.Action)
 				return null;
 
@@ -161,6 +266,8 @@ namespace OpenRA.Orders
 				.Select(x => x)
 				.OrderByDescending(x => x.Order.OrderPriority);
 
+			Console.WriteLine(modifiers);
+
 			for (var i = 0; i < 2; i++)
 			{
 				foreach (var o in orders)
@@ -168,7 +275,9 @@ namespace OpenRA.Orders
 					var localModifiers = modifiers;
 					string cursor = null;
 					if (o.Order.CanTarget(self, target, actorsAt, ref localModifiers, ref cursor))
+					{
 						return new UnitOrderResult(self, o.Order, o.Trait, cursor, target);
+					}
 				}
 
 				// No valid orders, so check for orders against the cell

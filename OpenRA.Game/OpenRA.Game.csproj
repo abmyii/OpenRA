@@ -69,6 +69,11 @@
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" /> 
     <AdditionalFiles Include="../stylecop.json" />
     <AdditionalFiles Include="Properties/launchSettings.json" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <Reference Include="System.Json" />
+    <Reference Include="System.Json.Microsoft" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <Target Name="DisableAnalyzers" BeforeTargets="CoreCompile" Condition="'$(Configuration)'=='Release'">
     <!-- Disable code style analysis on Release builds to improve compile-time performance -->

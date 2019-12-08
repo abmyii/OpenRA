@@ -13,6 +13,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using OpenRA.Primitives;
+using Newtonsoft.Json;
 
 namespace OpenRA
 {
@@ -52,6 +53,7 @@ namespace OpenRA
 
 		public MiniYaml Save(Func<object, bool> initFilter = null)
 		{
+			Console.WriteLine(JsonConvert.SerializeObject(InitDict));
 			var ret = new MiniYaml(Type);
 			foreach (var init in InitDict)
 			{
