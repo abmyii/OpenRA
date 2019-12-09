@@ -18,6 +18,8 @@ using Newtonsoft.Json;
 using System;
 using Newtonsoft.Json.Linq;
 using OpenRA;
+using MessagePack;
+using Ceras;
 
 public class VertexBufferConverter : JsonConverter
 {
@@ -46,7 +48,7 @@ namespace OpenRA.Orders
 	{
 		static Target TargetForInput(World world, CPos cell, int2 worldPixel, MouseInput mi)
 		{
-			var errors = new List<string>();
+			/**var errors = new List<string>();
 			var settings = new JsonSerializerSettings
 			{
 				Formatting = Formatting.Indented,
@@ -70,7 +72,21 @@ namespace OpenRA.Orders
 			string json = JsonConvert.SerializeObject(world, settings);
 			Console.WriteLine(json.Length);
 			World w = JsonConvert.DeserializeObject<World>(json, settings);
-			Console.WriteLine(JsonConvert.SerializeObject(errors, settings));
+			Console.WriteLine(JsonConvert.SerializeObject(errors, settings));**/
+			//var bin = MessagePackSerializer.Serialize(world, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+			//Console.WriteLine(bin.Length);
+			//config.ConfigType<World>().ConstructBy(() => Activator.CreateInstance(World)); // select ctor
+			var config = new SerializerConfig { DefaultTargets = TargetMember.AllFields, PreserveReferences = true };
+			config.Advanced.ReadonlyFieldHandling = ReadonlyFieldHandling.ForcedOverwrite;
+			config.Advanced.SkipCompilerGeneratedFields = false;
+			config.OnConfigNewType = tc => tc.TypeConstruction = TypeConstruction.ByUninitialized();
+			config.Advanced.DelegateSerialization = DelegateSerializationFlags.AllowInstance;
+			var ceras = new CerasSerializer(config);
+
+			var debug = ceras.GenerateSerializationDebugReport(typeof(World));
+
+			var bytes = ceras.Serialize(world);
+			var world1 = ceras.Deserialize<World>(bytes);
 
 			var actor = world.ScreenMap.ActorsAtMouse(mi)
 				.Where(a => !a.Actor.IsDead && a.Actor.Info.HasTraitInfo<ITargetableInfo>() && !world.FogObscures(a.Actor))
@@ -260,8 +276,6 @@ namespace OpenRA.Orders
 				.SelectMany(trait => trait.Orders.Select(x => new { Trait = trait, Order = x }))
 				.Select(x => x)
 				.OrderByDescending(x => x.Order.OrderPriority);
-
-			Console.WriteLine(modifiers);
 
 			for (var i = 0; i < 2; i++)
 			{

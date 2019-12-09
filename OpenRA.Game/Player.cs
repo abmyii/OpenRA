@@ -37,6 +37,8 @@ namespace OpenRA
 
 	public class Player : IScriptBindable, IScriptNotifyBind, ILuaTableBinding, ILuaEqualityBinding, ILuaToStringBinding
 	{
+		public Player() { }
+
 		struct StanceColors
 		{
 			public Color Self;

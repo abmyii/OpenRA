@@ -27,6 +27,8 @@ namespace OpenRA
 
 	public sealed class World : IDisposable
 	{
+		public World() {}
+
 		internal readonly TraitDictionary TraitDict = new TraitDictionary();
 		readonly SortedDictionary<uint, Actor> actors = new SortedDictionary<uint, Actor>();
 		readonly List<IEffect> effects = new List<IEffect>();
